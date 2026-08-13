@@ -14,16 +14,18 @@ A wireless server room environment monitoring system based on LoRa (Long Range) 
 
 ## 🛠️ Hardware Components
 
-**1. Sensor Node (Server Room)**
+**1. Gateway & Web Server Node**
+* 1x Seeed Studio XIAO nRF52840 (as LoRa Receiver)
+* 1x Wio SX1262 LoRa Kit
+* 1x ESP32 Development Board (as Aggregator & Web Server)
+  
+**2. Server Room Node**
 * 1x Seeed Studio XIAO nRF52840
 * 1x Wio SX1262 LoRa Kit
 * 1x BME680 Environmental & Gas Sensor (I2C)
 * 1x 1.3" OLED Display (I2C)
 
-**2. Gateway & Web Server Node (Control Room)**
-* 1x Seeed Studio XIAO nRF52840 (as LoRa Receiver)
-* 1x Wio SX1262 LoRa Kit
-* 1x ESP32 Development Board (as Aggregator & Web Server)
+
 
 ---
 
@@ -55,8 +57,8 @@ The XIAO nRF52840 acts as a radio receiver and sends raw data via Serial (UART) 
 Make sure you have installed the following libraries via the **Library Manager** in the Arduino IDE before compiling:
 1. `ArduinoJson` (by Benoit Blanchon) - For dynamic memory management and data parsing.
 2. `Adafruit BME680 Library` - To read temperature, humidity, pressure, and gas.
-3. `U8g2` or `Adafruit SSD1306` - To control the OLED display.
-4. `RadioLib` or the default LoRa library for Wio SX1262.
+3. `U8g2` - To control the OLED display.
+4. `RadioLib` - For LoRa communication via Wio SX1262.
 
 ---
 
@@ -65,3 +67,38 @@ Make sure you have installed the following libraries via the **Library Manager**
 1. Clone this repository to your computer:
    ```bash
    git clone [https://github.com/YOUR_USERNAME/LoRa-Server-Monitoring.git](https://github.com/YOUR_USERNAME/LoRa-Server-Monitoring.git)
+
+2. Open the Gateway_ESP32 folder and edit the .ino file. Change the Wi-Fi credentials and Static IP settings according to your local network:
+   ```bash
+   #C++
+   
+   const char* ssid     = "YOUR_WIFI_NAME_HERE";
+   const char* password = "YOUR_WIFI_PASSWORD_HERE";
+   IPAddress local_IP(192, 168, 18, 113); // Adjust to your network
+   ```
+3. Upload the Sensor Node code to the first XIAO nRF52840.
+4. Upload the LoRa Receiver code to the second XIAO nRF52840.
+5. Upload the Gateway Aggregator code to the ESP32.
+6. Power on all devices. Open a browser on a computer/phone connected to the same network and access http://192.168.18.113/api/data (or the IP you configured).
+
+---
+
+## 📡 JSON API Output Example
+When the system is running, the ESP32 will serve data in a clean JSON format ready to be fetched by dashboards (like Grafana or Node-RED):
+```bash
+{
+  "Ruang Server": {
+    "suhu": "21.50",
+    "kelembapan": "45.20",
+    "tekanan": "1012.30",
+    "gas_iaq": "150",
+    "last_update": "3 seconds ago"
+  }
+}
+```
+*Note: You can add new LoRa Nodes (e.g., "Generator_Room") without needing to edit the code on the ESP32 at all!*
+
+---
+
+## ⚠️ Security
+This repository does not include real network passwords or keys. Never upload your actual Wi-Fi credentials to a public repository.
