@@ -1,4 +1,4 @@
-# 📡 LoRa-Based Server Room Monitoring System
+# 📡 LoRa-Based Office Environment Monitoring System
 
 A wireless server room environment monitoring system based on LoRa (Long Range) technology. This project is designed to operate independently of the local Wi-Fi network in the server area, providing early warnings against potential component overheating or electrical short circuits. It features a server architecture that supports the dynamic addition of new devices (Dynamic JSON Allocation).
 
