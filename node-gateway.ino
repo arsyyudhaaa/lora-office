@@ -2,50 +2,50 @@
 #include <WebServer.h>
 #include <ArduinoJson.h>
 
-// --- WIFI & IP STATIC ---
+// --- WIFI & STATIC IP ---
 const char* ssid     = "YOUR_WIFI";
 const char* password = "YOUR_PASSWORD_WIFI";
 
-// Pengaturan IP Static
+// Static IP Configuration
 IPAddress local_IP(192, 168, 18, 113);       
 IPAddress gateway(192, 168, 18, 1);         
 IPAddress subnet(255, 255, 255, 0);        
 IPAddress primaryDNS(8, 8, 8, 8);          
 IPAddress secondaryDNS(8, 8, 4, 4);        
 
-// --- PENGATURAN LED INDIKATOR ---
-#define LED_PIN 2 // Pin LED bawaan ESP32
-unsigned long ledMenyalaSejak = 0;
-const unsigned long durasiKedip = 100; // LED menyala selama 100 milidetik
+// --- LED INDICATOR SETTINGS ---
+#define LED_PIN 2 // Built-in ESP32 LED pin
+unsigned long ledOnSince = 0;
+const unsigned long blinkDuration = 100; // LED turns on for 100 milliseconds
 
-// Inisialisasi WebServer pada port 80
+// Initialize WebServer on port 80
 WebServer server(80);
 
-// Database JSON Global untuk menampung data dari semua node
+// Global JSON Database to store data from all nodes
 JsonDocument db;
 
 void setup() {
-  // 1. Setup Pin LED
+  // 1. Setup LED Pin
   pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN, LOW); // Pastikan LED mati saat awal
+  digitalWrite(LED_PIN, LOW); // Ensure LED is off at startup
 
-  // 2. Serial untuk Debugging ke PC (USB)
+  // 2. Serial for PC Debugging (USB)
   Serial.begin(115200);
   
-  // 3. Serial2 untuk komunikasi UART dengan XIAO LoRa Receiver (RX=16, TX=17)
+  // 3. Serial2 for UART communication with XIAO LoRa Receiver (RX=16, TX=17)
   Serial2.begin(115200, SERIAL_8N1, 16, 17);
   
   delay(1000);
   Serial.println("\n=== ESP32 IoT AGGREGATOR (STATIC IP + LED) ===");
 
-  // 4. Konfigurasi IP Static sebelum menghubungkan ke Wi-Fi
-  Serial.println("Mengonfigurasi IP Static...");
+  // 4. Configure Static IP before connecting to Wi-Fi
+  Serial.println("Configuring Static IP...");
   if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
-    Serial.println("❌ Gagal mengonfigurasi IP Static!");
+    Serial.println("❌ Failed to configure Static IP!");
   }
 
-  // 5. Menghubungkan ke Wi-Fi
-  Serial.print("Menghubungkan ke Wi-Fi: ");
+  // 5. Connecting to Wi-Fi
+  Serial.print("Connecting to Wi-Fi: ");
   Serial.println(ssid);
   WiFi.begin(ssid, password);
 
@@ -53,19 +53,19 @@ void setup() {
     delay(500);
     Serial.print(".");
   }
-  Serial.println("\n✅ Wi-Fi Terhubung!");
-  Serial.print("🌐 Alamat IP ESP32: ");
+  Serial.println("\n✅ Wi-Fi Connected!");
+  Serial.print("🌐 ESP32 IP Address: ");
   Serial.println(WiFi.localIP());
 
-  // 6. Routing Web Server (Endpoint API)
+  // 6. Web Server Routing (API Endpoint)
   server.on("/", handleRoot);          
   server.on("/api/data", handleAPI);        
 
-  // Mulai Web Server
+  // Start Web Server
   server.begin();
-  Serial.println("🚀 Web Server berjalan!");
+  Serial.println("🚀 Web Server is running!");
   
-  // Beri sinyal LED berkedip cepat 3 kali tanda sistem siap
+  // Blink LED 3 times quickly to indicate system is ready
   for(int i=0; i<3; i++){
     digitalWrite(LED_PIN, HIGH); delay(100);
     digitalWrite(LED_PIN, LOW); delay(100);
@@ -73,58 +73,58 @@ void setup() {
 }
 
 void loop() {
-  // Tangani permintaan klien web (Browser/Dashboard)
+  // Handle web client requests (Browser/Dashboard)
   server.handleClient();
 
-  // Membaca data UART yang masuk dari XIAO LoRa Receiver
+  // Read incoming UART data from XIAO LoRa Receiver
   if (Serial2.available()) {
     String incomingData = Serial2.readStringUntil('\n');
-    incomingData.trim(); // Hapus spasi/enter berlebih
+    incomingData.trim(); // Remove excess spaces/newlines
     
     if (incomingData.length() > 0) {
-      Serial.print("📥 Data diterima dari LoRa: ");
+      Serial.print("📥 Data received from LoRa: ");
       Serial.println(incomingData);
 
-      // Nyalakan LED dan catat waktunya saat data masuk
+      // Turn on LED and record the time when data arrives
       digitalWrite(LED_PIN, HIGH);
-      ledMenyalaSejak = millis();
+      ledOnSince = millis();
 
-      // Parsing JSON yang masuk
+      // Parse incoming JSON
       JsonDocument tempDoc;
       DeserializationError error = deserializeJson(tempDoc, incomingData);
 
       if (!error) {
-        // Ambil nama node
+        // Get node name
         String nodeName = tempDoc["node"].as<String>();
 
         if (nodeName != "null" && nodeName != "") {
-          // Simpan atau Perbarui data di Database Global ESP32
+          // Save or Update data in ESP32 Global Database
           db[nodeName]["suhu"]       = tempDoc["suhu"];
           db[nodeName]["kelembapan"] = tempDoc["kelembapan"];
           db[nodeName]["tekanan"]    = tempDoc["tekanan"];
           db[nodeName]["gas_iaq"]    = tempDoc["gas_iaq"];
           
-          // Catat waktu kapan data terakhir diterima (dalam milidetik)
+          // Record the time when data was last received (in milliseconds)
           db[nodeName]["last_update_ms"] = millis();
           
-          Serial.println("✅ Memori berhasil diperbarui untuk: " + nodeName);
+          Serial.println("✅ Memory successfully updated for: " + nodeName);
         }
       } else {
-        Serial.print("❌ Gagal parsing JSON masuk: ");
+        Serial.print("❌ Failed to parse incoming JSON: ");
         Serial.println(error.f_str());
       }
     }
   }
 
-  // --- LOGIKA UNTUK MEMATIKAN LED (NON-BLOCKING) ---
-  // Mengecek apakah LED sedang menyala DAN apakah durasi 100ms sudah terlewati
-  if (digitalRead(LED_PIN) == HIGH && (millis() - ledMenyalaSejak >= durasiKedip)) {
-    digitalWrite(LED_PIN, LOW); // Matikan LED
+  // --- LOGIC TO TURN OFF LED (NON-BLOCKING) ---
+  // Check if LED is currently on AND if the 100ms duration has passed
+  if (digitalRead(LED_PIN) == HIGH && (millis() - ledOnSince >= blinkDuration)) {
+    digitalWrite(LED_PIN, LOW); // Turn off LED
   }
 }
 
 // ==========================================
-// FUNGSI UNTUK MENAMPILKAN JSON KE BROWSER
+// FUNCTION TO DISPLAY JSON TO BROWSER
 // ==========================================
 void handleAPI() {
   JsonDocument responseDoc = db;
@@ -134,7 +134,7 @@ void handleAPI() {
     unsigned long lastMs = kv.value()["last_update_ms"];
     unsigned long diffSeconds = (currentMs - lastMs) / 1000;
     
-    kv.value()["last_update"] = String(diffSeconds) + " detik lalu";
+    kv.value()["last_update"] = String(diffSeconds) + " seconds ago";
     kv.value().remove("last_update_ms");
   }
 
@@ -144,10 +144,10 @@ void handleAPI() {
 }
 
 // ==========================================
-// FUNGSI UNTUK HALAMAN ROOT
+// FUNCTION FOR ROOT PAGE
 // ==========================================
 void handleRoot() {
   String html = "<h1>ESP32 IoT Aggregator</h1>";
-  html += "<p>Silakan akses <b><a href='/api/data'>/api</a></b> untuk melihat data JSON.</p>";
+  html += "<p>Please access <b><a href='/api/data'>/api/data</a></b> to view the JSON data.</p>";
   server.send(200, "text/html", html);
 }
