@@ -98,11 +98,17 @@ void loop() {
         String nodeName = tempDoc["node"].as<String>();
 
         if (nodeName != "null" && nodeName != "") {
-          // Save or Update data in ESP32 Global Database
-          db[nodeName]["suhu"]       = tempDoc["suhu"];
-          db[nodeName]["kelembapan"] = tempDoc["kelembapan"];
-          db[nodeName]["tekanan"]    = tempDoc["tekanan"];
-          db[nodeName]["gas_iaq"]    = tempDoc["gas_iaq"];
+          
+          // --- UPDATE LOGIKA DINAMIS ---
+          // Salin SEMUA key-value dari tempDoc ke database global ESP32, 
+          // kecuali key "node" (karena sudah jadi nama laci utamanya)
+          JsonObject incomingObj = tempDoc.as<JsonObject>();
+          for (JsonPair kv : incomingObj) {
+            String key = kv.key().c_str();
+            if (key != "node") {
+              db[nodeName][key] = kv.value();
+            }
+          }
           
           // Record the time when data was last received (in milliseconds)
           db[nodeName]["last_update_ms"] = millis();
@@ -117,7 +123,6 @@ void loop() {
   }
 
   // --- LOGIC TO TURN OFF LED (NON-BLOCKING) ---
-  // Check if LED is currently on AND if the 100ms duration has passed
   if (digitalRead(LED_PIN) == HIGH && (millis() - ledOnSince >= blinkDuration)) {
     digitalWrite(LED_PIN, LOW); // Turn off LED
   }
