@@ -132,7 +132,7 @@ void loop() {
     // ==========================================
     
     JsonDocument doc;
-    doc["node"]         = "Ruang_Genset_1";
+    doc["node"]         = "Ruang Genset 1";
     doc["suhu"]         = serialized(String(suhu, 1));
     doc["kelembapan"]   = serialized(String(kelembapan, 1));
     doc["volt_aki"]     = serialized(String(volt_aki, 2));
