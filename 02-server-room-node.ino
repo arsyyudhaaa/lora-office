@@ -169,7 +169,7 @@ void loop() {
 
     // 4. Transmit data over the air
     int transmitStatus = radio.transmit(txData);
-    String loraStatus = (transmitStatus == RADIOLIB_ERR_NONE) ? "LoRa: OK" : "LoRa: FAIL";
+    String loraStatus = (transmitStatus == RADIOLIB_ERR_NONE) ? "OK" : "FAIL";
 
     if (transmitStatus == RADIOLIB_ERR_NONE) {
       Serial.println("✅ Data transmitted successfully!");
@@ -192,18 +192,18 @@ void loop() {
     u8g2.print(" C");
 
     u8g2.setCursor(3, 35);
-    u8g2.print("Hum:  ");
+    u8g2.print("RH: ");
     u8g2.print(bme.humidity, 1);
     u8g2.print(" %");
 
     // Display IAQ
     u8g2.setCursor(3, 47);
-    u8g2.print("IAQ:  ");
+    u8g2.print("IAQ: ");
     u8g2.print(iaq_value, 0); // Display as integer without decimals
 
     // LoRa Transmission Status (Bottom right corner)
     u8g2.setCursor(3, 59);
-    u8g2.print("Status: ");
+    u8g2.print("Status LoRa: ");
     u8g2.print(loraStatus);
 
     u8g2.sendBuffer(); // Send data to screen to be displayed
