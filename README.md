@@ -25,6 +25,12 @@ A wireless server room environment monitoring system based on LoRa (Long Range) 
 * 1x BME680 Environmental & Gas Sensor (I2C)
 * 1x 1.3" OLED Display (I2C)
 
+**3. Sensor Node (Generator Room 1)**
+* 1x Seeed Studio XIAO nRF52840 + Wio SX1262 LoRa Kit
+* 1x Grove Ultrasonic Ranger (Fuel Level)
+* 1x INA219 Current Sensor (Battery & Engine Status)
+* 1x BME280 Sensor (Room Temperature)
+* 1x 1.3" OLED Display
 
 
 ---
