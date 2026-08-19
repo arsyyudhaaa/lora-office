@@ -98,7 +98,15 @@ When the system is running, the ESP32 will serve data in a clean JSON format rea
     "kelembapan": "45.20",
     "tekanan": "1012.30",
     "gas_iaq": "150",
-    "last_update": "3 seconds ago"
+    "last_update": "10 seconds ago"
+  },
+  "Ruang Genset 1": {
+    "suhu": "34.2",
+    "kelembapan": "60.1",
+    "volt_aki": "13.80",
+    "solar_persen": 85,
+    "status": "ON",
+    "last_update": "2 seconds ago"
   }
 }
 ```
