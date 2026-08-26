@@ -48,6 +48,22 @@ Due to pin limitations on the XIAO nRF52840 when paired with the Wio SX1262, the
 | **OLED SCL** | `D7` |
 | **VCC & GND** | `3V3` & `GND` |
 
+### Generator 1 Node
+This node monitors the generator's fuel level, battery voltage, and room temperature. Due to pin limitations, all I2C devices (BME280, OLED, and INA219) are connected in parallel.
+
+| Component | Pin (XIAO nRF52840) |
+| :--- | :--- |
+| **BME280, OLED, INA219 (SDA)** | `D0` |
+| **BME280, OLED, INA219 (SCL)** | `D7` |
+| **Grove Ultrasonic (SIG)** | `D6` |
+| **VCC & GND (All Sensors)** | `3V3` & `GND` |
+
+> **⚠️ CRITICAL SAFETY WARNING FOR INA219 WIRING:**
+> To safely measure the 12V generator battery without destroying the INA219 module from massive engine starter currents, you **MUST** wire it purely as a voltmeter (parallel), NOT as an ammeter (series):
+> * **Vin+ Terminal:** Connect to Generator Battery Positive (+).
+> * **GND Terminal:** Connect to Generator Battery Negative (-).
+> * **Vin- Terminal:** **LEAVE COMPLETELY EMPTY / DISCONNECTED.** Do not connect anything here!
+
 ### Gateway Node (XIAO to ESP32)
 The XIAO nRF52840 acts as a radio receiver and sends raw data via Serial (UART) to the ESP32.
 
